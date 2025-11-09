@@ -24,7 +24,7 @@ parser.add_argument('--data_dir', type=str, required=True, help='Path to the dat
 args = parser.parse_args()
 
 BATCH_SIZE = 8
-EPOCHS = 1000
+EPOCHS = 100
 LR = 2e-5
 NUM_GPUS = 1
 IMAGE_SIZE = 224
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     trainer.fit(model, train_loader)
 
     # Save final encoder 
-    final_encoder_path = Path('checkpoints/online_encoder/encoder_final.pt')
+    final_encoder_path = Path('checkpoint/online_encoder/encoder_final.pt')
     final_encoder_path.parent.mkdir(parents=True, exist_ok=True)
     torch.save(model.learner.online_encoder.state_dict(), final_encoder_path)
     print(f"Final encoder saved to {final_encoder_path}")
