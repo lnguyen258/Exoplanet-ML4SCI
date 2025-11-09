@@ -2,8 +2,7 @@ from typing import *
 import copy
 
 import torch
-from torch import nn, Tensor
-import torchvision.transforms as T
+from torch import nn
 
 class BYOL(nn.Module):
     def __init__(self, net, projection_size, projection_hidden_size, moving_average_decay, use_momentum):
@@ -37,7 +36,7 @@ class BYOL(nn.Module):
 
     def _get_feature_dim(self):
         # Dummy forward pass to get feature dimension
-        dummy_input = torch.randn(1, 3, 32, 32)
+        dummy_input = torch.randn(1, 1, 224, 224)
         with torch.no_grad():
             features = self.online_encoder(dummy_input)
         return features.size(1)

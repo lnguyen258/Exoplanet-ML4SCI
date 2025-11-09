@@ -41,9 +41,7 @@ class RepresentationLearner(pl.LightningModule):
         return self.learner(view1, view2)
 
     def training_step(self, images, _):
-        view1 = torch.stack([augmentor(img) for img in images])
-        view2 = torch.stack([augmentor(img) for img in images])
-
+        view1, view2 = images
         loss = self.forward(view1, view2)
         self.log('train_loss', loss, prog_bar=True)
         return loss
@@ -58,7 +56,7 @@ class RepresentationLearner(pl.LightningModule):
             self.learner.update_moving_average()
     
 if __name__ == '__main__':
-    train_set = DiskDataset(args.data_dir)
+    train_set = DiskDataset(args.data_dir, transform=augmentor)
     train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
 
     model = RepresentationLearner(
