@@ -9,6 +9,7 @@ from torch import nn
 from torchvision.models import resnet50, ResNet50_Weights
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
+from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 
 from src.model import BYOL
 from src.utils import DiskDataset, augment_compose
@@ -55,10 +56,22 @@ class RepresentationLearner(pl.LightningModule):
         if self.learner.use_momentum:
             self.learner.update_moving_average()
     
+    def on_train_epoch_end(self):
+        checkpoint_dir = Path('checkpoint/online_encoder')
+        checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Save the online encoder
+        encoder_path = checkpoint_dir / f'encoder_epoch_{self.current_epoch}.pt'
+        torch.save(self.learner.online_encoder.state_dict(), encoder_path)
+    
+        latest_path = checkpoint_dir / 'encoder_latest.pt'
+        torch.save(self.learner.online_encoder.state_dict(), latest_path)
+    
 if __name__ == '__main__':
     train_set = DiskDataset(args.data_dir, transform=augmentor)
     train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
 
+    # Initiate model
     model = RepresentationLearner(
         resnet,
         projection_size=256,
@@ -67,10 +80,32 @@ if __name__ == '__main__':
         use_momentum=True,
     )
 
+    # Checkpoint callback for resume training
+    checkpoint_callback = ModelCheckpoint(
+        dirpath='checkpoint/full_model',
+        filename='byol-{epoch:02d}-{train_loss:.4f}',
+        save_top_k=3,
+        monitor='train_loss',
+        mode='min',
+        save_last=True,
+    )
+
+    # Learning rate monitor
+    lr_monitor = LearningRateMonitor(logging_interval='epoch')
+
+    # Define trainer
     trainer = pl.Trainer(
         max_epochs = EPOCHS,
         accumulate_grad_batches=1,
         sync_batchnorm=True,
+        callbacks=[checkpoint_callback, lr_monitor],
+        default_root_dir='log',
     )
 
     trainer.fit(model, train_loader)
+
+    # Save final encoder 
+    final_encoder_path = Path('checkpoints/online_encoder/encoder_final.pt')
+    final_encoder_path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(model.learner.online_encoder.state_dict(), final_encoder_path)
+    print(f"Final encoder saved to {final_encoder_path}")
