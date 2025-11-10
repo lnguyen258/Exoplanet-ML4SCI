@@ -1,6 +1,5 @@
 import os
 import argparse
-import multiprocessing
 from pathlib import Path
 from PIL import Image
 
@@ -20,7 +19,7 @@ resnet.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
 resnet.fc = nn.Identity()
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--data_dir', type=str, required=True, help='Path to the dataset directory' )
+parser.add_argument('--data_dir', type=str, required=True, help='Path to the dataset directory')
 args = parser.parse_args()
 
 BATCH_SIZE = 8

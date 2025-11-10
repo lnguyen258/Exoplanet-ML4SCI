@@ -2,5 +2,4 @@
 *.pyc
 **/__pycache__/
 lightning_logs/
-log/
-checkpoint/
+checkpoint/*/*
