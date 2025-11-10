@@ -61,6 +61,14 @@ Basic training command:
 python train.py --data_dir data/train
 ```
 
+## Testing (in my case K-means clustering using trained model from training above)
+
+An example:
+```bash
+python test.py --data_dir data/train \
+               --checkpoint_dir checkpoint/online_encoder/encoder_final.pt \
+               --n_clusters 4
+```
 ## Checkpoints
 After training, a checkpoint dir will be generated in the executed folder
 
